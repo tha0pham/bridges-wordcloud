@@ -8,7 +8,7 @@ import java.util.Scanner;
 import java.util.Set;
 
 public class Stopword {
-    private Set<String> stopwords;
+    private final Set<String> stopwords;
 
     public Stopword() {
         this("stopwords.txt");
@@ -25,8 +25,7 @@ public class Stopword {
             }
             scanner.close();
         } catch (FileNotFoundException e) {
-            System.err.println("Stop words text file must be placed in " +
-                    "project root folder!");
+            System.err.println("Stop words text file must be placed in " + "project root folder!");
             e.printStackTrace();
         }
     }
@@ -40,11 +39,7 @@ public class Stopword {
             return true;
         } //remove numbers, "25th", etc
 
-        if (stopwords.contains(word)) {
-            return true;
-        } else {
-            return false;
-        }
+        return stopwords.contains(word);
     }
 
     @Override

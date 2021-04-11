@@ -16,7 +16,7 @@ public class Main {
 
     static final String DELIMITERS = " !@#$%^&*()-=_+;'\":,.\\/<>?[]{}\n\r";
     static int noOfWords = 15;
-    private static Random rnd = new Random(Integer.MAX_VALUE);
+    private static final Random rnd = new Random(Integer.MAX_VALUE);
 
     public static void main(String[] args) throws Exception {
         //create Bridges object
@@ -56,7 +56,7 @@ public class Main {
         Stopword stopword = new Stopword();
 
         // Use Porter's algorithm for English by default
-        Stemmer stemmer = new Stemmer();
+        Stemmer stemmer = new PorterStemmer();
 
         Map<String, Integer> frequencyMap = new HashMap<>();
 
@@ -69,10 +69,10 @@ public class Main {
             }
 
             // update frequency map
-            if (frequencyMap.containsKey(stem)) {
-                frequencyMap.put(stem, frequencyMap.get(stem) + 1);
+            if (frequencyMap.containsKey(word)) {
+                frequencyMap.put(word, frequencyMap.get(word) + 1);
             } else {
-                frequencyMap.put(stem, 1);
+                frequencyMap.put(word, 1);
             }
         }
 
@@ -168,6 +168,7 @@ public class Main {
 
     /**
      * Randomly set the location of the given label
+     *
      * @param label
      */
     private static void makeInitialPosition(Label label) {
@@ -182,7 +183,9 @@ public class Main {
 
     /**
      * Sort a map by values in descending order
+     *
      * @param unsortedMap
+     *
      * @return sorted map
      */
     private static Map<String, Integer> sortByValue(Map<String, Integer> unsortedMap) {
@@ -198,8 +201,10 @@ public class Main {
 
     /**
      * Limit a map to a number of entries. Map must be pre-sorted.
+     *
      * @param sortedMap
      * @param limit
+     *
      * @return A new map with limited number of entries
      */
     private static Map<String, Integer> limit(Map<String, Integer> sortedMap, int limit) {
@@ -220,11 +225,12 @@ public class Main {
 
     /**
      * This method takes in a sorted map of word-frequency and scales the
-     * frequencies to the allowed font size range in BRIDGES.
-     * Minimum frequency is always set to 1.
-     * The font size range used in this method is [10, 80].
+     * frequencies to the allowed font size range in BRIDGES. Minimum frequency
+     * is always set to 1. The font size range used in this method is [10, 80].
+     *
      * @param map The sorted map of word-frequency
      * @param max The maximum frequency
+     *
      * @return A map of word-fontSize
      */
     private static Map<String, Float> scaleFontSize(Map<String, Integer> map, int max) {
@@ -242,13 +248,15 @@ public class Main {
     }
 
     /**
-     * This method scales a number to a new range given the previous max and
-     * min values.
-     * @param unscaled The number to be scaled
-     * @param baseMin The original min value
-     * @param baseMax The original max value
+     * This method scales a number to a new range given the previous max and min
+     * values.
+     *
+     * @param unscaled   The number to be scaled
+     * @param baseMin    The original min value
+     * @param baseMax    The original max value
      * @param minAllowed The min value of the new range
      * @param maxAllowed The max value of the new range
+     *
      * @return A scaled number in range [minAllowed, maxAllowed] that is
      * proportional to the unscaled number in range [baseMin, baseMax]
      */
