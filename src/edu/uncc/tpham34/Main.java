@@ -5,6 +5,7 @@ import bridges.base.SymbolCollection;
 import bridges.connect.Bridges;
 import bridges.connect.DataSource;
 import bridges.data_src_dependent.Shakespeare;
+import edu.uncc.tpham34.stemmer.LovinsStemmer;
 import edu.uncc.tpham34.stemmer.PorterStemmer;
 import edu.uncc.tpham34.stemmer.Stemmer;
 import org.lemurproject.kstem.KrovetzStemmer;
@@ -30,7 +31,7 @@ public class Main {
 
         // title, description
         bridges.setTitle("Word Cloud Demo");
-        bridges.setDescription("Display word cloud using labels");
+        bridges.setDescription("Word cloud using labels - Lovins and Krovetz");
 
         // create some symbols and add to symbol collection
         SymbolCollection sc = new SymbolCollection();
@@ -58,9 +59,12 @@ public class Main {
         // Use stopwords.txt if no file path is given
         Stopword stopword = new Stopword();
 
+        // Use Krovetz's algorithm as the pre-stemmer
+        KrovetzStemmer preStemmer = new KrovetzStemmer();
+
         // Use Porter's algorithm for English by default
         Stemmer stemmer = new PorterStemmer();
-        KrovetzStemmer preStemmer = new KrovetzStemmer();
+//        Stemmer stemmer = new LovinsStemmer();
 
         //stem => list of original words
         Map<String, List<String>> stemMap = new HashMap<>();
@@ -242,7 +246,7 @@ public class Main {
      * Limit a map to a number of entries. Map must be pre-sorted.
      *
      * @param sortedMap Map sorted by values
-     * @param limit Number of elements after shorting the map
+     * @param limit     Number of elements after shorting the map
      *
      * @return A new map with limited number of entries
      */
@@ -267,8 +271,8 @@ public class Main {
      * frequencies to the allowed font size range in BRIDGES. Minimum frequency
      * is always set to 1. The font size range used in this method is [10, 80].
      *
-     * @param map The sorted map of word-frequency
-     * @param max The maximum frequency
+     * @param map     The sorted map of word-frequency
+     * @param baseMax The maximum frequency
      *
      * @return A map of word-fontSize
      */
