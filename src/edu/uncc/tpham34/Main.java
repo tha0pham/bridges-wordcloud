@@ -5,6 +5,9 @@ import bridges.base.SymbolCollection;
 import bridges.connect.Bridges;
 import bridges.connect.DataSource;
 import bridges.data_src_dependent.Shakespeare;
+import edu.uncc.tpham34.stemmer.PorterStemmer;
+import edu.uncc.tpham34.stemmer.Stemmer;
+import org.lemurproject.kstem.KrovetzStemmer;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -15,8 +18,8 @@ import static edu.uncc.tpham34.Config.*;
 public class Main {
 
     static final String DELIMITERS = " !@#$%^&*()-=_+;'\":,.\\/<>?[]{}\n\r";
-    static int noOfWords = 15;
     private static final Random rnd = new Random(Integer.MAX_VALUE);
+    static int noOfWords = 15;
 
     public static void main(String[] args) throws Exception {
         //create Bridges object
@@ -42,7 +45,7 @@ public class Main {
         // Get text from the first play and convert to lowercase
         String document = plays.get(0).getText().toLowerCase();
 
-        /**
+        /*
          * Text processing:
          * 1. Tokenize
          * 2. Filter stop words
@@ -57,23 +60,58 @@ public class Main {
 
         // Use Porter's algorithm for English by default
         Stemmer stemmer = new PorterStemmer();
+        KrovetzStemmer preStemmer = new KrovetzStemmer();
 
+        //stem => list of original words
+        Map<String, List<String>> stemMap = new HashMap<>();
+
+        //word => frequency
         Map<String, Integer> frequencyMap = new HashMap<>();
 
         while (tokenizer.hasMoreTokens()) {
+            // read the next word
             String word = tokenizer.nextToken();
-            String stem = stemmer.stem(word);
 
-            if (stopword.isStopWord(word) || stopword.isStopWord(stem)) {
+            // filter stop words
+            if (stopword.isStopWord(word)) {
                 continue;
             }
 
-            // update frequency map
-            if (frequencyMap.containsKey(word)) {
-                frequencyMap.put(word, frequencyMap.get(word) + 1);
-            } else {
-                frequencyMap.put(word, 1);
+            // stem the word
+            String stem = stemmer.stem(preStemmer.stem(word));
+            if (stopword.isStopWord(stem)) {
+                continue;
             }
+
+            if (!stemMap.containsKey(stem)) {
+                stemMap.put(stem, new ArrayList<>());
+            }
+            stemMap.get(stem).add(word);
+        }
+
+        //restore the most popular word variant
+        for (String s : stemMap.keySet()) {
+            Map<String, Integer> variants = new HashMap<>();
+            int frequency = 0;
+
+            for (String w : stemMap.get(s)) {
+                if (!variants.containsKey(w)) {
+                    variants.put(w, 0);
+                }
+
+                variants.put(w, variants.get(w) + 1);
+                frequency++;
+            }
+
+            String bestVariant = null;
+            for (String variant : variants.keySet()) {
+                if (bestVariant == null || variants.get(variant) > variants.get(bestVariant)) {
+                    bestVariant = variant;
+                }
+            }
+
+            // set frequency to the total of all variants
+            frequencyMap.put(bestVariant, frequency);
         }
 
         // Sort map and limit to the given number of words
@@ -85,7 +123,8 @@ public class Main {
         // Create a map of word-fontSize
         Map<String, Float> wordMap = scaleFontSize(sortedMap, maxFrequency);
 
-        /**
+
+        /*
          * Layout - Wordle's algorithm:
          *
          * place the word where it wants to be
@@ -169,14 +208,14 @@ public class Main {
     /**
      * Randomly set the location of the given label
      *
-     * @param label
+     * @param label Label whose location is to be set
      */
     private static void makeInitialPosition(Label label) {
         float x, y;
-        int randomNumber = 5;
+        int randomNumber = 20;
 
-        x = (float) (rnd.nextDouble() * randomNumber + 10);
-        y = (float) (rnd.nextDouble() * randomNumber + 10);
+        x = (float) (rnd.nextDouble() * randomNumber);
+        y = (float) (rnd.nextDouble() * randomNumber);
 
         label.setLocation(x, y);
     }
@@ -184,9 +223,9 @@ public class Main {
     /**
      * Sort a map by values in descending order
      *
-     * @param unsortedMap
+     * @param unsortedMap Map to be sorted by values
      *
-     * @return sorted map
+     * @return sorted map Map sorted by values
      */
     private static Map<String, Integer> sortByValue(Map<String, Integer> unsortedMap) {
         List<Map.Entry<String, Integer>> list = new ArrayList<>(unsortedMap.entrySet());
@@ -202,8 +241,8 @@ public class Main {
     /**
      * Limit a map to a number of entries. Map must be pre-sorted.
      *
-     * @param sortedMap
-     * @param limit
+     * @param sortedMap Map sorted by values
+     * @param limit Number of elements after shorting the map
      *
      * @return A new map with limited number of entries
      */
@@ -233,12 +272,11 @@ public class Main {
      *
      * @return A map of word-fontSize
      */
-    private static Map<String, Float> scaleFontSize(Map<String, Integer> map, int max) {
+    private static Map<String, Float> scaleFontSize(Map<String, Integer> map, int baseMax) {
         float maxAllowed = 80f;
         float minAllowed = 10f;
 
         float baseMin = 1f;
-        float baseMax = max;
 
         Map<String, Float> result = new LinkedHashMap<>();
         for (String key : map.keySet()) {

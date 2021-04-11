@@ -8,7 +8,7 @@ import java.util.Scanner;
 import java.util.Set;
 
 public class Stopword {
-    private final Set<String> stopwords;
+    private Set<String> stopwords;
 
     public Stopword() {
         this("stopwords.txt");
